@@ -23,6 +23,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
+
+                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
             }
         }
         val jvmTest by getting
