@@ -1,3 +1,5 @@
+package shell
+
 sealed interface RunCommandState {
 
     object Idle: RunCommandState

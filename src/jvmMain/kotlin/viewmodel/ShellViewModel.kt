@@ -28,7 +28,7 @@ class ShellViewModel(
         provideScope(GlobalScope)
     }
 
-    private val tempPath = CommonSetting.basePath + File.separator + cacheTempFilename + File.separator
+    private val tempPath = CommonSetting.basePath + File.separator + cacheTempPathname + File.separator
     private val tempApk = tempPath + cacheTempFilename
 
     private val _signState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
