@@ -10,6 +10,11 @@ object CommonSetting {
     }
 
     /**
+     * 通用输出路径
+     */
+    var outputPath: String = ""
+
+    /**
      * zipalign路径
      */
     lateinit var zipalignPath: String
