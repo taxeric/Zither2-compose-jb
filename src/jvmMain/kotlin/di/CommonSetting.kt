@@ -1,10 +1,8 @@
 package di
 
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import entity.JksEntity
-import entity.SettingEntity
+import entity.SettingsEntity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
@@ -25,7 +23,7 @@ object CommonSetting {
     private const val settingFilename = "setting.json"
     private var settingFilepath = basePath + File.separator + settingFilename
 
-    val commonSettingFlow = MutableStateFlow<SettingEntity>(SettingEntity.default)
+    val commonSettingFlow = MutableStateFlow<SettingsEntity>(SettingsEntity.default)
 
     /**
      * 通用输出路径
@@ -43,7 +41,7 @@ object CommonSetting {
      */
     lateinit var apksignerPath: String
 
-    private fun bind(data: SettingEntity) {
+    private fun bind(data: SettingsEntity) {
         outputPath = data.outputPath
         zipalignPath = data.zipalignPath
         apksignerPath = data.apksignerPath
@@ -63,7 +61,7 @@ object CommonSetting {
             }
             if (json.isNotEmpty()) {
                 val mapper = jacksonObjectMapper()
-                val data = mapper.readValue<SettingEntity>(json)
+                val data = mapper.readValue<SettingsEntity>(json)
                 val mData = if (data.outputPath.isEmpty()) {
                     data.copy(outputPath = commonOutputPath)
                 } else {
@@ -75,7 +73,7 @@ object CommonSetting {
         }
     }
 
-    fun writeSetting(entity: SettingEntity) {
+    fun writeSetting(entity: SettingsEntity) {
         scope.launch {
             val file = File(settingFilepath)
             withContext(Dispatchers.IO) {

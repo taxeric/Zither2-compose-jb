@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import di.CommonSetting
-import entity.SettingEntity
+import entity.SettingsEntity
 import views.TitleWithDragView
 
 @Composable
@@ -56,7 +56,7 @@ fun SettingsScreen(
         Button(
             onClick = {
                 CommonSetting.writeSetting(
-                    SettingEntity(
+                    SettingsEntity(
                         outputPath = commonOutputPath,
                         zipalignPath = localZipalignPath,
                         apksignerPath = localApksignerPath
