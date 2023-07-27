@@ -3,12 +3,10 @@ package viewmodel
 import di.CommonSetting
 import shell.RunCommandState
 import di.ShellProcess
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import viewmodel.base.ScopeViewModel
 import viewmodel.base.ScopeViewModelImpl
 import java.io.File
@@ -21,7 +19,7 @@ class ShellViewModel(
     companion object {
 
         private const val cacheTempPathname = "cacheTempPath"
-        private const val cacheTempFilename = "cacheTempApk"
+        private const val cacheTempFilename = "cacheTempApk.apk"
         private const val outputFilename = "signed.apk"
     }
 
@@ -32,20 +30,30 @@ class ShellViewModel(
     private val tempPath = CommonSetting.basePath + File.separator + cacheTempPathname + File.separator
     private val tempApk = tempPath + cacheTempFilename
 
-    private val outputApk = CommonSetting.outputPath + File.separator + outputFilename
-
     private val _signState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
     val signState: StateFlow<RunCommandState> = _signState.asStateFlow()
+
+    private fun buildOutputApkPath(): String = CommonSetting.outputPath + outputFilename
 
     fun runSign(
         originFilepath: String,
         jksPath: String,
         alias: String,
-        outputFile: String = outputApk,
+        outputFile: String = buildOutputApkPath(),
         keystorePwd: String,
         keyPwd: String,
     ) {
         delegate.scope.launch {
+            withContext(Dispatchers.IO) {
+                val cacheTempPath = File(tempPath)
+                if (!cacheTempPath.exists()) {
+                    cacheTempPath.mkdir()
+                }
+                val outputPath = File(CommonSetting.outputPath)
+                if (!outputPath.exists()) {
+                    outputPath.mkdir()
+                }
+            }
             _signState.tryEmit(RunCommandState.Running)
             ShellProcess.runSign(
                 zipalignPath = CommonSetting.zipalignPath,
