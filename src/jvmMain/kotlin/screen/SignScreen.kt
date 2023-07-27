@@ -1,42 +1,46 @@
 package screen
 
 import viewmodel.ShellViewModel
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import views.DragContent
 import views.SwitchWithTitle
+import views.TitleWithDragView
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SignScreen(
     vm: ShellViewModel,
     composeWindow: ComposeWindow
 ) {
+    val signState = vm.signState.collectAsState().value
+    var unsignedApkPath by remember {
+        mutableStateOf("选择文件, 支持拖拽")
+    }
+    var jksPath by remember {
+        mutableStateOf("选择签名文件, 支持拖拽")
+    }
+    var alias by remember {
+        mutableStateOf("")
+    }
+    var keyPwd by remember {
+        mutableStateOf("")
+    }
+    var ksPwd by remember {
+        mutableStateOf("")
+    }
+    var useLocalConfigJks by remember {
+        mutableStateOf(false)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 8.dp)
     ) {
-
-        var unsignedApkPath by remember {
-            mutableStateOf("选择文件, 支持拖拽")
-        }
-        var jksPath by remember {
-            mutableStateOf("选择签名文件, 支持拖拽")
-        }
-        var useLocalConfigJks by remember {
-            mutableStateOf(false)
-        }
 
         TitleWithDragView(
             "选择未签名APK",
@@ -73,7 +77,9 @@ fun SignScreen(
             enabled = {
                 !useLocalConfigJks
             },
-            onValueChange = {}
+            onValueChange = {
+                ksPwd = it
+            }
         )
 
         TitleWithTextField(
@@ -81,7 +87,9 @@ fun SignScreen(
             enabled = {
                 !useLocalConfigJks
             },
-            onValueChange = {}
+            onValueChange = {
+                alias = it
+            }
         )
 
         TitleWithTextField(
@@ -89,74 +97,24 @@ fun SignScreen(
             enabled = {
                 !useLocalConfigJks
             },
-            onValueChange = {}
+            onValueChange = {
+                keyPwd = it
+            }
         )
 
         Button(
-            onClick = {}
+            onClick = {
+                vm.runSign(
+                    originFilepath = unsignedApkPath,
+                    jksPath = jksPath,
+                    alias = alias,
+                    keyPwd = keyPwd,
+                    keystorePwd = ksPwd,
+                )
+            }
         ) {
             Text("Run")
         }
-    }
-}
-
-@Composable
-private fun TitleWithDragView(
-    title: String,
-    composeWindow: ComposeWindow,
-    withBottomSpace: Boolean = false,
-    value: String,
-    enabled: () -> Boolean,
-    onValueChange: (String) -> Unit
-) {
-    Text(
-        title,
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    Row(
-        modifier = Modifier
-            .height(48.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ){
-        DragContent(
-            modifier = Modifier
-                .width(400.dp)
-                .fillMaxHeight()
-                .background(Color.White, RoundedCornerShape(20))
-                .border(1.dp, Color.LightGray, RoundedCornerShape(20)),
-            window = composeWindow,
-            content = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    Text(
-                        value,
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(horizontal = 4.dp)
-                    )
-                }
-            }
-        ) {
-            if (enabled()) {
-                it.forEach { file ->
-                    println(">>>> ${file.text}")
-                }
-                onValueChange.invoke(it.first().text)
-            }
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Button(
-            enabled = enabled(),
-            modifier = Modifier,
-            onClick = {}
-        ) {
-            Text("选择文件")
-        }
-    }
-    if (withBottomSpace) {
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
