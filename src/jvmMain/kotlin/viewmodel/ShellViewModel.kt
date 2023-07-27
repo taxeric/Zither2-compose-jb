@@ -22,6 +22,7 @@ class ShellViewModel(
 
         private const val cacheTempPathname = "cacheTempPath"
         private const val cacheTempFilename = "cacheTempApk"
+        private const val outputFilename = "signed.apk"
     }
 
     init {
@@ -31,6 +32,8 @@ class ShellViewModel(
     private val tempPath = CommonSetting.basePath + File.separator + cacheTempPathname + File.separator
     private val tempApk = tempPath + cacheTempFilename
 
+    private val outputApk = CommonSetting.outputPath + File.separator + outputFilename
+
     private val _signState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
     val signState: StateFlow<RunCommandState> = _signState.asStateFlow()
 
@@ -38,7 +41,7 @@ class ShellViewModel(
         originFilepath: String,
         jksPath: String,
         alias: String,
-        outputFile: String,
+        outputFile: String = outputApk,
         keystorePwd: String,
         keyPwd: String,
     ) {
