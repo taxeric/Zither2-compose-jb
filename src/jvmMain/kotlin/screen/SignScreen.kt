@@ -15,11 +15,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import entity.JksEntity
+import shell.RunCommandState
 import viewmodel.ConfigViewModel
 import views.SimpleRadioGroup
 import views.SwitchWithTitle
 import views.TitleWithDragView
+import java.awt.Desktop
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SignScreen(
     shellVM: ShellViewModel,
@@ -27,6 +30,33 @@ fun SignScreen(
     composeWindow: ComposeWindow
 ) {
     val signState = shellVM.signState.collectAsState().value
+    if (signState is RunCommandState.Success) {
+        AlertDialog(
+            onDismissRequest = { shellVM.idleState() },
+            text = {
+                Text("签名完成")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        shellVM.idleState()
+                    }
+                ) {
+                    Text("确定")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        Desktop.getDesktop().open(shellVM.outputFile())
+                        shellVM.idleState()
+                    }
+                ) {
+                    Text("打开文件夹")
+                }
+            }
+        )
+    }
     var unsignedApkPath by remember {
         mutableStateOf("选择文件, 支持拖拽")
     }
@@ -41,9 +71,6 @@ fun SignScreen(
     }
     var ksPwd by remember {
         mutableStateOf("")
-    }
-    var currentChooseJks by remember {
-        mutableStateOf(JksEntity.default)
     }
     var useLocalConfigJks by remember {
         mutableStateOf(false)
@@ -78,7 +105,10 @@ fun SignScreen(
                     .width(400.dp),
                 vm = configVM
             ) { jks, index ->
-                currentChooseJks = jks
+                jksPath = jks.path
+                alias = jks.alias
+                ksPwd = jks.ksPwd
+                keyPwd = jks.pwd
             }
         }
 
@@ -99,6 +129,7 @@ fun SignScreen(
             enabled = {
                 !useLocalConfigJks
             },
+            value = { ksPwd },
             onValueChange = {
                 ksPwd = it
             }
@@ -109,6 +140,7 @@ fun SignScreen(
             enabled = {
                 !useLocalConfigJks
             },
+            value = { alias },
             onValueChange = {
                 alias = it
             }
@@ -119,6 +151,7 @@ fun SignScreen(
             enabled = {
                 !useLocalConfigJks
             },
+            value = { keyPwd },
             onValueChange = {
                 keyPwd = it
             }
@@ -147,10 +180,10 @@ fun SignScreen(
                 onClick = {
                     shellVM.runSign(
                         originFilepath = unsignedApkPath,
-                        jksPath = if (useLocalConfigJks) currentChooseJks.path else jksPath,
-                        alias = if (useLocalConfigJks) currentChooseJks.alias else alias,
-                        keyPwd = if (useLocalConfigJks) currentChooseJks.pwd else keyPwd,
-                        keystorePwd = if (useLocalConfigJks) currentChooseJks.ksPwd else ksPwd,
+                        jksPath = jksPath,
+                        alias = alias,
+                        keyPwd = keyPwd,
+                        keystorePwd = ksPwd,
                     )
                 }
             ) {
@@ -207,11 +240,9 @@ private fun TitleWithTextField(
     title: String,
     enabled: () -> Boolean,
     withBottomSpace: Boolean = true,
+    value: () -> String,
     onValueChange: (String) -> Unit
 ) {
-    var text by remember {
-        mutableStateOf("")
-    }
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -222,9 +253,8 @@ private fun TitleWithTextField(
         )
         Spacer(modifier = Modifier.width(8.dp))
         TextField(
-            value = text,
+            value = value(),
             onValueChange = {
-                text = it
                 onValueChange.invoke(it)
             },
             enabled = enabled(),
