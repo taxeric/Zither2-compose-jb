@@ -36,18 +36,64 @@ class ConfigViewModel(
     private val _jksConfigFlow = MutableStateFlow(listOf<JksEntity>())
     val jksConfigFlow: StateFlow<List<JksEntity>> = _jksConfigFlow.asStateFlow()
 
+    /**
+     * 需要编辑的签名
+     */
+    private val _needEditJksFlow = MutableStateFlow(JksEntity.default)
+    val needEditJksEntity: StateFlow<JksEntity> = _needEditJksFlow.asStateFlow()
+
     private fun buildJksPath() = CommonSetting.basePath + File.separator + "jks" + File.separator
+
+    /**
+     * 发射需要编辑的jks
+     */
+    fun emitNeedEditJks(
+        jksEntity: JksEntity
+    ) {
+        _needEditJksFlow.tryEmit(jksEntity)
+    }
+
+    fun saveEditJksConfig(
+        newJksEntity: JksEntity
+    ) {
+        filterAndMapJksConfig { mutableList, i, jks ->
+            mutableList.add(
+                if (newJksEntity.fileUid == jks.fileUid) {
+                    newJksEntity
+                } else {
+                    jks
+                }
+            )
+        }
+    }
+
+    fun deleteJksConfig(
+        jksEntity: JksEntity
+    ) {
+        filterAndMapJksConfig { mutableList, i, jks ->
+            if (jksEntity.fileUid != jks.fileUid) {
+                mutableList.add(jks)
+            }
+        }
+    }
 
     fun deleteJksConfig(
         index: Int
     ) {
-        val cacheJks = _jksConfigFlow.value
-        val newJksConfig = mutableListOf<JksEntity>().apply {
-            cacheJks.forEachIndexed { i, jksEntity ->
-                if (index != i) {
-                    add(jksEntity)
-                }
+        filterAndMapJksConfig { mutableList, i, jks ->
+            if (index != i) {
+                mutableList.add(jks)
             }
+        }
+    }
+
+    fun filterAndMapJksConfig(
+        doSomething: (mutableList: MutableList<JksEntity>, i: Int, jks: JksEntity) -> Unit
+    ) {
+        val cacheJks = _jksConfigFlow.value
+        val newJksConfig = mutableListOf<JksEntity>()
+        cacheJks.forEachIndexed { i, jksEntity ->
+            doSomething.invoke(newJksConfig, i, jksEntity)
         }
         writeJksConfig(newJksConfig) {
             _jksConfigFlow.tryEmit(newJksConfig)
