@@ -35,6 +35,12 @@ class ShellViewModel(
 
     private fun buildOutputApkPath(): String = CommonSetting.outputPath + outputFilename
 
+    fun idleState() {
+        _signState.tryEmit(RunCommandState.Idle)
+    }
+
+    fun outputFile() = File(CommonSetting.outputPath)
+
     fun runSign(
         originFilepath: String,
         jksPath: String,
