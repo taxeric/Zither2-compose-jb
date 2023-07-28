@@ -38,6 +38,22 @@ class ConfigViewModel(
 
     private fun buildJksPath() = CommonSetting.basePath + File.separator + "jks" + File.separator
 
+    fun deleteJksConfig(
+        index: Int
+    ) {
+        val cacheJks = _jksConfigFlow.value
+        val newJksConfig = mutableListOf<JksEntity>().apply {
+            cacheJks.forEachIndexed { i, jksEntity ->
+                if (index != i) {
+                    add(jksEntity)
+                }
+            }
+        }
+        writeJksConfig(newJksConfig) {
+            _jksConfigFlow.tryEmit(newJksConfig)
+        }
+    }
+
     fun readJksConfig(
         path: String = buildJksPath(),
         filename: String = jksCacheName
@@ -47,17 +63,26 @@ class ConfigViewModel(
         }
     }
 
-    fun writeJksConfig(jksEntity: JksEntity) {
+    fun writeJksConfig(
+        jksEntity: JksEntity,
+        onComplete: () -> Unit = {},
+    ) {
         val cacheKey = jksConfigFlow.value
         writeJksConfig(
             list = mutableListOf<JksEntity>().apply {
                 addAll(cacheKey)
                 add(jksEntity)
-            }
+            },
+            false,
+            onComplete,
         )
     }
 
-    fun writeJksConfig(list: List<JksEntity>, append: Boolean = false) {
+    fun writeJksConfig(
+        list: List<JksEntity>,
+        append: Boolean = false,
+        onComplete: () -> Unit = {},
+    ) {
         if (list.isEmpty()) {
             return
         }
@@ -65,7 +90,8 @@ class ConfigViewModel(
             list,
             buildJksPath(),
             jksCacheName,
-            append
+            append,
+            onComplete
         )
     }
 
@@ -97,7 +123,8 @@ class ConfigViewModel(
         any: Any,
         filepath: String,
         filename: String,
-        append: Boolean = false
+        append: Boolean = false,
+        onComplete: () -> Unit = {}
     ) {
         delegate.scope.launch {
             withContext(Dispatchers.IO) {
@@ -114,6 +141,7 @@ class ConfigViewModel(
                 } else {
                     FileOutputStream(file, append).use { it.write(str.toByteArray(Charsets.UTF_8)) }
                 }
+                onComplete.invoke()
             }
         }
     }
