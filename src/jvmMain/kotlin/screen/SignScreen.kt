@@ -1,5 +1,7 @@
 package screen
 
+import androidx.compose.foundation.ContextMenuArea
+import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import viewmodel.ShellViewModel
@@ -57,24 +59,13 @@ fun SignScreen(
             }
         )
     }
-    var unsignedApkPath by remember {
-        mutableStateOf("选择文件, 支持拖拽")
-    }
-    var jksPath by remember {
-        mutableStateOf("选择签名文件, 支持拖拽")
-    }
-    var alias by remember {
-        mutableStateOf("")
-    }
-    var keyPwd by remember {
-        mutableStateOf("")
-    }
-    var ksPwd by remember {
-        mutableStateOf("")
-    }
-    var useLocalConfigJks by remember {
-        mutableStateOf(false)
-    }
+    var unsignedApkPath by remember { mutableStateOf("选择文件, 支持拖拽") }
+    var jksPath by remember { mutableStateOf("选择签名文件, 支持拖拽") }
+    var alias by remember { mutableStateOf("") }
+    var keyPwd by remember { mutableStateOf("") }
+    var ksPwd by remember { mutableStateOf("") }
+    var currentChooseJksIndex by remember { mutableStateOf(-1) }
+    var useLocalConfigJks by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,13 +94,26 @@ fun SignScreen(
             ScrollableLocalSignView(
                 modifier = Modifier
                     .width(400.dp),
-                vm = configVM
-            ) { jks, index ->
-                jksPath = jks.path
-                alias = jks.alias
-                ksPwd = jks.ksPwd
-                keyPwd = jks.pwd
-            }
+                vm = configVM,
+                onSelected = { jks, index ->
+                    currentChooseJksIndex = index
+                    jksPath = jks.path
+                    alias = jks.alias
+                    ksPwd = jks.ksPwd
+                    keyPwd = jks.pwd
+                },
+                onEdit = { index, it ->
+                },
+                onDelete = { index, _ ->
+                    if (index == currentChooseJksIndex) {
+                        jksPath = ""
+                        alias = ""
+                        ksPwd = ""
+                        keyPwd = ""
+                    }
+                    configVM.deleteJksConfig(index)
+                }
+            )
         }
 
         TitleWithDragView(
@@ -168,7 +172,9 @@ fun SignScreen(
                         alias = alias,
                         ksPwd = ksPwd
                     )
-                    configVM.writeJksConfig(jksEntity)
+                    configVM.writeJksConfig(jksEntity) {
+                        configVM.readJksConfig()
+                    }
                 }
             ) {
                 Text("Save")
@@ -197,7 +203,9 @@ fun SignScreen(
 private fun ScrollableLocalSignView(
     modifier: Modifier = Modifier,
     vm: ConfigViewModel,
-    onSelected: (JksEntity, Int) -> Unit
+    onSelected: (JksEntity, Int) -> Unit,
+    onEdit: (Int, JksEntity) -> Unit = {_,_ ->},
+    onDelete: (Int, JksEntity) -> Unit = {_,_ ->},
 ) {
     val jksList = vm.jksConfigFlow.collectAsState().value
     var selectedIndex by remember { mutableStateOf(0) }
@@ -217,20 +225,33 @@ private fun ScrollableLocalSignView(
         modifier = modifier,
         contentModifier = Modifier
             .padding(8.dp, 0.dp)
-    ) { tab, selected, childModifier ->
-        Text(
-            text = tab.text,
-            textAlign = TextAlign.Center,
-            color = Color.DarkGray,
-            fontSize = 12.sp,
-            modifier = childModifier
-                .border(
-                    1.dp,
-                    if (selected == tab.tag) Color.DarkGray else Color.Transparent,
-                    RoundedCornerShape(4.dp)
+    ) { index, tab, selected, childModifier ->
+        ContextMenuArea(
+            items = {
+                listOf(
+                    ContextMenuItem("编辑") {
+                        onEdit.invoke(index, jksList[index])
+                    },
+                    ContextMenuItem("删除") {
+                        onDelete.invoke(index, jksList[index])
+                    },
                 )
-                .padding(12.dp, 8.dp)
-        )
+            }
+        ) {
+            Text(
+                text = tab.text,
+                textAlign = TextAlign.Center,
+                color = Color.DarkGray,
+                fontSize = 12.sp,
+                modifier = childModifier
+                    .border(
+                        1.dp,
+                        if (selected == tab.tag) Color.DarkGray else Color.Transparent,
+                        RoundedCornerShape(4.dp)
+                    )
+                    .padding(12.dp, 8.dp)
+            )
+        }
     }
     Spacer(modifier = Modifier.height(16.dp))
 }
