@@ -15,6 +15,7 @@ import di.CommonSetting
 import screen.SettingsScreen
 import screen.SignScreen
 import screen.SwitchScreen
+import viewmodel.ConfigViewModel
 import viewmodel.ShellViewModel
 
 @Composable
@@ -22,7 +23,9 @@ import viewmodel.ShellViewModel
 fun App(
     composeWindow: ComposeWindow
 ) {
-    val vm = remember { ShellViewModel() }
+    val scope = rememberCoroutineScope()
+    val shellVM = remember { ShellViewModel(scope) }
+    val configVM = remember { ConfigViewModel(scope) }
 
     var selectedIndex by remember {
         mutableStateOf(0)
@@ -45,7 +48,7 @@ fun App(
                 .weight(4f)
         ) {
             when (selectedIndex) {
-                0 -> SignScreen(vm, composeWindow)
+                0 -> SignScreen(shellVM, configVM, composeWindow)
                 1 -> SettingsScreen(composeWindow)
             }
         }
