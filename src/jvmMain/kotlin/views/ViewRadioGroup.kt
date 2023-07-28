@@ -22,10 +22,11 @@ fun SimpleRadioGroup(
     tabs: List<BaseRadioTab>,
     onSelected: (Int, BaseRadioTab) -> Unit,
     content: @Composable (
+        index: Int,
         tab: BaseRadioTab,
         selected: String,
         childModifier: Modifier
-    ) -> Unit = { _,_,_ -> },
+    ) -> Unit = { _,_,_,_ -> },
 ) {
     if (tabs.isEmpty()) {
         return
@@ -82,10 +83,11 @@ private fun ItemView(
     orientation: Orientation = Orientation.Horizontal,
     onSelected: (Int, BaseRadioTab) -> Unit,
     content: @Composable (
+        index: Int,
         tab: BaseRadioTab,
         selected: String,
         childModifier: Modifier
-    ) -> Unit = { _,_,_ -> },
+    ) -> Unit = { _,_,_,_ -> },
 ) {
     tabs.forEachIndexed { index, tab ->
         Column {
@@ -99,7 +101,7 @@ private fun ItemView(
                         role = Role.RadioButton
                     )
             ) {
-                content(tab, selectedTab, Modifier.align(Alignment.Center))
+                content(index, tab, selectedTab, Modifier.align(Alignment.Center))
             }
             if (index != tabs.size - 1) {
                 if (orientation == Orientation.Horizontal) {

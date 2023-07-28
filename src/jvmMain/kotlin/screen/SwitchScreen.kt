@@ -39,7 +39,7 @@ fun SwitchScreen(
             .fillMaxWidth(),
         contentModifier = Modifier
             .padding(24.dp, 0.dp)
-    ) { tab, selected, childModifier ->
+    ) { _, tab, selected, childModifier ->
         Text(
             text = tab.text,
             textAlign = TextAlign.Center,
