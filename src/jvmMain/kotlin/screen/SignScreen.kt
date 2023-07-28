@@ -1,23 +1,32 @@
 package screen
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
 import viewmodel.ShellViewModel
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import entity.JksEntity
+import viewmodel.ConfigViewModel
+import views.SimpleRadioGroup
 import views.SwitchWithTitle
 import views.TitleWithDragView
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SignScreen(
-    vm: ShellViewModel,
+    shellVM: ShellViewModel,
+    configVM: ConfigViewModel,
     composeWindow: ComposeWindow
 ) {
-    val signState = vm.signState.collectAsState().value
+    val signState = shellVM.signState.collectAsState().value
     var unsignedApkPath by remember {
         mutableStateOf("选择文件, 支持拖拽")
     }
@@ -32,6 +41,9 @@ fun SignScreen(
     }
     var ksPwd by remember {
         mutableStateOf("")
+    }
+    var currentChooseJks by remember {
+        mutableStateOf(JksEntity.default)
     }
     var useLocalConfigJks by remember {
         mutableStateOf(false)
@@ -60,6 +72,16 @@ fun SignScreen(
             }
         )
 
+        if (useLocalConfigJks) {
+            ScrollableLocalSignView(
+                modifier = Modifier
+                    .width(400.dp),
+                vm = configVM
+            ) { jks, index ->
+                currentChooseJks = jks
+            }
+        }
+
         TitleWithDragView(
             "选择签名",
             composeWindow = composeWindow,
@@ -73,7 +95,7 @@ fun SignScreen(
         }
 
         TitleWithTextField(
-            title = "keystore pwd",
+            title = "ks pwd",
             enabled = {
                 !useLocalConfigJks
             },
@@ -102,20 +124,77 @@ fun SignScreen(
             }
         )
 
-        Button(
-            onClick = {
-                vm.runSign(
-                    originFilepath = unsignedApkPath,
-                    jksPath = jksPath,
-                    alias = alias,
-                    keyPwd = keyPwd,
-                    keystorePwd = ksPwd,
-                )
+        Row {
+
+            Button(
+                enabled = !useLocalConfigJks,
+                onClick = {
+                    val jksEntity = JksEntity.buildEntityByPath(
+                        path = jksPath,
+                        pwd = keyPwd,
+                        alias = alias,
+                        ksPwd = ksPwd
+                    )
+                    configVM.writeJksConfig(jksEntity)
+                }
+            ) {
+                Text("Save")
             }
-        ) {
-            Text("Run")
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    shellVM.runSign(
+                        originFilepath = unsignedApkPath,
+                        jksPath = if (useLocalConfigJks) currentChooseJks.path else jksPath,
+                        alias = if (useLocalConfigJks) currentChooseJks.alias else alias,
+                        keyPwd = if (useLocalConfigJks) currentChooseJks.pwd else keyPwd,
+                        keystorePwd = if (useLocalConfigJks) currentChooseJks.ksPwd else ksPwd,
+                    )
+                }
+            ) {
+                Text("Run")
+            }
         }
     }
+}
+
+@Composable
+private fun ScrollableLocalSignView(
+    modifier: Modifier = Modifier,
+    vm: ConfigViewModel,
+    onSelected: (JksEntity, Int) -> Unit
+) {
+    val jksList = vm.jksConfigFlow.collectAsState().value
+    var selectedIndex by remember { mutableStateOf(0) }
+    SimpleRadioGroup(
+        tabs = jksList,
+        orientation = Orientation.Horizontal,
+        onSelected = { index, _ ->
+            selectedIndex = index
+            onSelected.invoke(jksList[selectedIndex], selectedIndex)
+        },
+        defaultSelected = selectedIndex,
+        modifier = modifier,
+        contentModifier = Modifier
+            .padding(8.dp, 0.dp)
+    ) { tab, selected, childModifier ->
+        Text(
+            text = tab.text,
+            textAlign = TextAlign.Center,
+            color = Color.DarkGray,
+            fontSize = 12.sp,
+            modifier = childModifier
+                .border(
+                    1.dp,
+                    if (selected == tab.tag) Color.DarkGray else Color.Transparent,
+                    RoundedCornerShape(4.dp)
+                )
+                .padding(12.dp, 8.dp)
+        )
+    }
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
