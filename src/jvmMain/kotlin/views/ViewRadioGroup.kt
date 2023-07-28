@@ -19,10 +19,10 @@ fun SimpleRadioGroup(
     contentModifier: Modifier = Modifier,
     orientation: Orientation = Orientation.Horizontal,
     defaultSelected: Int = 0,
-    tabs: List<CustomTab>,
-    onSelected: (Int, CustomTab) -> Unit,
+    tabs: List<BaseRadioTab>,
+    onSelected: (Int, BaseRadioTab) -> Unit,
     content: @Composable (
-        tab: CustomTab,
+        tab: BaseRadioTab,
         selected: String,
         childModifier: Modifier
     ) -> Unit = { _,_,_ -> },
@@ -44,6 +44,7 @@ fun SimpleRadioGroup(
                 modifier = contentModifier,
                 selectedTab = selectedTab,
                 tabs = tabs,
+                orientation = orientation,
                 onSelected = { index, tab ->
                     selectedTab = tabs[index].tag
                     onSelected(index, tab)
@@ -62,6 +63,7 @@ fun SimpleRadioGroup(
                 modifier = contentModifier,
                 selectedTab = selectedTab,
                 tabs = tabs,
+                orientation = orientation,
                 onSelected = { index, tab ->
                     selectedTab = tabs[index].tag
                     onSelected(index, tab)
@@ -76,10 +78,11 @@ fun SimpleRadioGroup(
 private fun ItemView(
     modifier: Modifier,
     selectedTab: String,
-    tabs: List<CustomTab>,
-    onSelected: (Int, CustomTab) -> Unit,
+    tabs: List<BaseRadioTab>,
+    orientation: Orientation = Orientation.Horizontal,
+    onSelected: (Int, BaseRadioTab) -> Unit,
     content: @Composable (
-        tab: CustomTab,
+        tab: BaseRadioTab,
         selected: String,
         childModifier: Modifier
     ) -> Unit = { _,_,_ -> },
@@ -99,13 +102,17 @@ private fun ItemView(
                 content(tab, selectedTab, Modifier.align(Alignment.Center))
             }
             if (index != tabs.size - 1) {
-                Spacer(Modifier.height(8.dp))
+                if (orientation == Orientation.Horizontal) {
+                    Spacer(Modifier.width(8.dp))
+                } else if (orientation == Orientation.Vertical) {
+                    Spacer(Modifier.height(8.dp))
+                }
             }
         }
     }
 }
 
-data class CustomTab(
-    val text: String,
-    val tag: String = text
+open class BaseRadioTab(
+    var text: String,
+    var tag: String = text
 )
