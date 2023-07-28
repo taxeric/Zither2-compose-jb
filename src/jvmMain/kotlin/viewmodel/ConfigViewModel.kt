@@ -111,17 +111,11 @@ class ConfigViewModel(
 
     fun writeJksConfig(
         jksEntity: JksEntity,
+        isNewJks: Boolean = true,
         onComplete: () -> Unit = {},
     ) {
         val cacheKey = jksConfigFlow.value
-        var cachedIndex = -1
-        cacheKey.forEachIndexed { index, cacheJks ->
-            if (cacheJks.fileUid == jksEntity.fileUid) {
-                cachedIndex = index
-                return@forEachIndexed
-            }
-        }
-        if (cachedIndex != -1) {
+        if (!isNewJks) {
             saveEditJksConfig(jksEntity)
         } else {
             writeJksConfig(
