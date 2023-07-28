@@ -4,7 +4,6 @@ import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
-import viewmodel.ShellViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -16,9 +15,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import entity.JksEntity
 import shell.RunCommandState
 import viewmodel.ConfigViewModel
+import viewmodel.ShellViewModel
 import views.SimpleRadioGroup
 import views.SwitchWithTitle
 import views.TitleWithDragView
@@ -66,6 +67,7 @@ fun SignScreen(
     var ksPwd by remember { mutableStateOf("") }
     var currentChooseJksIndex by remember { mutableStateOf(-1) }
     var useLocalConfigJks by remember { mutableStateOf(false) }
+    var showEditJksDialog by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,7 +75,7 @@ fun SignScreen(
     ) {
 
         TitleWithDragView(
-            "选择未签名APK",
+            "未签名APK",
             composeWindow = composeWindow,
             value = unsignedApkPath,
             withBottomSpace = true,
@@ -102,22 +104,24 @@ fun SignScreen(
                     ksPwd = jks.ksPwd
                     keyPwd = jks.pwd
                 },
-                onEdit = { index, it ->
+                onEdit = { index, jks ->
+                    configVM.emitNeedEditJks(jks)
+                    showEditJksDialog = true
                 },
-                onDelete = { index, _ ->
+                onDelete = { index, jks ->
                     if (index == currentChooseJksIndex) {
                         jksPath = ""
                         alias = ""
                         ksPwd = ""
                         keyPwd = ""
                     }
-                    configVM.deleteJksConfig(index)
+                    configVM.deleteJksConfig(jks)
                 }
             )
         }
 
         TitleWithDragView(
-            "选择签名",
+            "签名文件",
             composeWindow = composeWindow,
             value = jksPath,
             enabled = {
@@ -194,6 +198,110 @@ fun SignScreen(
                 }
             ) {
                 Text("Run")
+            }
+        }
+    }
+
+    if (showEditJksDialog) {
+        JksEditView(
+            configVM,
+            composeWindow
+        ) {
+            showEditJksDialog = false
+        }
+    }
+}
+
+@Composable
+private fun JksEditView(
+    vm: ConfigViewModel,
+    composeWindow: ComposeWindow,
+    onDismissRequest: () -> Unit
+) {
+    Dialog(
+        onCloseRequest = onDismissRequest,
+        title = "签名编辑",
+        resizable = true,
+    ) {
+        val needEditJks = vm.needEditJksEntity.collectAsState().value
+        var newJksPath by remember { mutableStateOf(needEditJks.path) }
+        var newAlias by remember { mutableStateOf(needEditJks.alias) }
+        var newKeyPwd by remember { mutableStateOf(needEditJks.pwd) }
+        var newKsPwd by remember { mutableStateOf(needEditJks.ksPwd) }
+        var newFilename by remember { mutableStateOf(needEditJks.name) }
+        Column(
+            modifier = Modifier
+        ) {
+            TitleWithDragView(
+                "选择签名",
+                composeWindow = composeWindow,
+                value = newJksPath,
+                enabled = { true },
+                withBottomSpace = true,
+            ) {
+                newJksPath = it
+            }
+
+            TitleWithTextField(
+                title = "jks name",
+                enabled = { true },
+                value = { newFilename },
+                onValueChange = {
+                    newFilename = it
+                }
+            )
+
+            TitleWithTextField(
+                title = "ks pwd",
+                enabled = { true },
+                value = { newKsPwd },
+                onValueChange = {
+                    newKsPwd = it
+                }
+            )
+
+            TitleWithTextField(
+                title = "alias",
+                enabled = { true },
+                value = { newAlias },
+                onValueChange = {
+                    newAlias = it
+                }
+            )
+
+            TitleWithTextField(
+                title = "key pwd",
+                enabled = { true },
+                value = { newKeyPwd },
+                onValueChange = {
+                    newKeyPwd = it
+                }
+            )
+
+            Row {
+                Button(
+                    onClick = {
+                        vm.saveEditJksConfig(
+                            needEditJks.copy(
+                                name = newFilename,
+                                path = newJksPath,
+                                alias = newAlias,
+                                pwd = newKeyPwd,
+                                ksPwd = newKsPwd
+                            )
+                        )
+                        onDismissRequest.invoke()
+                    }
+                ) {
+                    Text("确定")
+                }
+                Button(
+                    onClick = {
+                        onDismissRequest.invoke()
+                    }
+                ) {
+                    Text("取消")
+                }
             }
         }
     }
