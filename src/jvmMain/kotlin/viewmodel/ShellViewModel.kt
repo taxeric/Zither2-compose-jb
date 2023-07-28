@@ -11,8 +11,8 @@ import viewmodel.base.ScopeViewModel
 import viewmodel.base.ScopeViewModelImpl
 import java.io.File
 
-@OptIn(DelicateCoroutinesApi::class)
 class ShellViewModel(
+    scope: CoroutineScope,
     private val delegate: ScopeViewModelImpl = ScopeViewModelImpl()
 ): ScopeViewModel by delegate {
 
@@ -24,7 +24,7 @@ class ShellViewModel(
     }
 
     init {
-        provideScope(GlobalScope)
+        provideScope(scope)
     }
 
     private val tempPath = CommonSetting.basePath + File.separator + cacheTempPathname + File.separator
