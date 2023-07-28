@@ -2,6 +2,7 @@ package entity
 
 import views.BaseRadioTab
 import java.io.File
+import java.util.UUID
 
 data class JksEntity(
     val name: String,
@@ -9,6 +10,7 @@ data class JksEntity(
     val pwd: String,
     val alias: String,
     val ksPwd: String,
+    val fileUid: String,
     val fileAlias: String = "",
     val default: Boolean = false,
 ): BaseRadioTab(text = name) {
@@ -21,6 +23,7 @@ data class JksEntity(
             pwd = "",
             alias = "",
             ksPwd = "",
+            fileUid = "",
             default = true
         )
 
@@ -31,12 +34,14 @@ data class JksEntity(
             ksPwd: String,
         ) : JksEntity {
             val mName = path.substring(path.lastIndexOf(File.separator) + 1, path.length)
+            val uid = UUID.randomUUID().toString()
             return JksEntity(
                 name = mName,
                 path = path,
                 pwd = pwd,
                 alias = alias,
                 ksPwd = ksPwd,
+                fileUid = uid,
                 fileAlias = mName
             )
         }
