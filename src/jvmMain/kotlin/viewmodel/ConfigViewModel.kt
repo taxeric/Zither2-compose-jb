@@ -114,14 +114,25 @@ class ConfigViewModel(
         onComplete: () -> Unit = {},
     ) {
         val cacheKey = jksConfigFlow.value
-        writeJksConfig(
-            list = mutableListOf<JksEntity>().apply {
-                addAll(cacheKey)
-                add(jksEntity)
-            },
-            false,
-            onComplete,
-        )
+        var cachedIndex = -1
+        cacheKey.forEachIndexed { index, cacheJks ->
+            if (cacheJks.fileUid == jksEntity.fileUid) {
+                cachedIndex = index
+                return@forEachIndexed
+            }
+        }
+        if (cachedIndex != -1) {
+            saveEditJksConfig(jksEntity)
+        } else {
+            writeJksConfig(
+                list = mutableListOf<JksEntity>().apply {
+                    addAll(cacheKey)
+                    add(jksEntity)
+                },
+                false,
+                onComplete,
+            )
+        }
     }
 
     fun writeJksConfig(
