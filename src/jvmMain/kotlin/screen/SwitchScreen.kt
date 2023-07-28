@@ -1,6 +1,6 @@
 package screen
 
-import views.CustomTab
+import views.BaseRadioTab
 import views.SimpleRadioGroup
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
@@ -23,9 +23,9 @@ fun SwitchScreen(
     var selectedIndex by remember {
         mutableStateOf(0)
     }
-    val tabs = mutableListOf<CustomTab>().apply {
-        add(CustomTab("签名"))
-        add(CustomTab("常用"))
+    val tabs = mutableListOf<BaseRadioTab>().apply {
+        add(BaseRadioTab("签名"))
+        add(BaseRadioTab("设置"))
     }
     SimpleRadioGroup(
         tabs = tabs,
