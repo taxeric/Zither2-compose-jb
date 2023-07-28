@@ -168,6 +168,11 @@ private fun ScrollableLocalSignView(
 ) {
     val jksList = vm.jksConfigFlow.collectAsState().value
     var selectedIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        if (jksList.isNotEmpty()) {
+            onSelected.invoke(jksList[selectedIndex], selectedIndex)
+        }
+    }
     SimpleRadioGroup(
         tabs = jksList,
         orientation = Orientation.Horizontal,
