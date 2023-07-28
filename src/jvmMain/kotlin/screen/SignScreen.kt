@@ -65,6 +65,7 @@ fun SignScreen(
     var alias by remember { mutableStateOf("") }
     var keyPwd by remember { mutableStateOf("") }
     var ksPwd by remember { mutableStateOf("") }
+    var currentChooseJks by remember { mutableStateOf(JksEntity.default) }
     var currentChooseJksIndex by remember { mutableStateOf(-1) }
     var useLocalConfigJks by remember { mutableStateOf(false) }
     var showEditJksDialog by remember { mutableStateOf(false) }
@@ -84,13 +85,27 @@ fun SignScreen(
             unsignedApkPath = it
         }
 
-        SwitchWithTitle(
-            "使用本地配置",
-            checked = useLocalConfigJks,
-            onCheckedChange = {
-                useLocalConfigJks = it
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            SwitchWithTitle(
+                "选择已保存的配置",
+                checked = useLocalConfigJks,
+                onCheckedChange = {
+                    useLocalConfigJks = it
+                }
+            )
+
+            if (useLocalConfigJks) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "使用保存配置时点击Save后将覆盖配置",
+                    color = Color.Red,
+                    fontSize = 12.sp
+                )
             }
-        )
+        }
 
         if (useLocalConfigJks) {
             ScrollableLocalSignView(
@@ -98,6 +113,7 @@ fun SignScreen(
                     .width(400.dp),
                 vm = configVM,
                 onSelected = { jks, index ->
+                    currentChooseJks = jks
                     currentChooseJksIndex = index
                     jksPath = jks.path
                     alias = jks.alias
@@ -124,9 +140,7 @@ fun SignScreen(
             "签名文件",
             composeWindow = composeWindow,
             value = jksPath,
-            enabled = {
-                !useLocalConfigJks
-            },
+            enabled = { true },
             withBottomSpace = true,
         ) {
             jksPath = it
@@ -134,9 +148,7 @@ fun SignScreen(
 
         TitleWithTextField(
             title = "ks pwd",
-            enabled = {
-                !useLocalConfigJks
-            },
+            enabled = { true },
             value = { ksPwd },
             onValueChange = {
                 ksPwd = it
@@ -145,9 +157,7 @@ fun SignScreen(
 
         TitleWithTextField(
             title = "alias",
-            enabled = {
-                !useLocalConfigJks
-            },
+            enabled = { true },
             value = { alias },
             onValueChange = {
                 alias = it
@@ -156,9 +166,7 @@ fun SignScreen(
 
         TitleWithTextField(
             title = "key pwd",
-            enabled = {
-                !useLocalConfigJks
-            },
+            enabled = { true },
             value = { keyPwd },
             onValueChange = {
                 keyPwd = it
@@ -168,15 +176,35 @@ fun SignScreen(
         Row {
 
             Button(
-                enabled = !useLocalConfigJks,
+                enabled = true,
                 onClick = {
-                    val jksEntity = JksEntity.buildEntityByPath(
-                        path = jksPath,
-                        pwd = keyPwd,
-                        alias = alias,
-                        ksPwd = ksPwd
-                    )
-                    configVM.writeJksConfig(jksEntity) {
+                    var isNewJks = true
+                    val jksEntity = if (useLocalConfigJks) {
+                        if (currentChooseJks.fileUid.isEmpty() || currentChooseJks.default) {
+                            JksEntity.buildEntityByPath(
+                                path = jksPath,
+                                pwd = keyPwd,
+                                alias = alias,
+                                ksPwd = ksPwd
+                            )
+                        } else {
+                            isNewJks = false
+                            currentChooseJks.copy(
+                                path = jksPath,
+                                pwd = keyPwd,
+                                alias = alias,
+                                ksPwd = ksPwd
+                            )
+                        }
+                    } else {
+                        JksEntity.buildEntityByPath(
+                            path = jksPath,
+                            pwd = keyPwd,
+                            alias = alias,
+                            ksPwd = ksPwd
+                        )
+                    }
+                    configVM.writeJksConfig(jksEntity, isNewJks) {
                         configVM.readJksConfig()
                     }
                 }
