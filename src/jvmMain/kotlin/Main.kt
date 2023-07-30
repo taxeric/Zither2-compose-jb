@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import di.CommonSetting
+import screen.CommonMethodsScreen
 import screen.SettingsScreen
 import screen.SignScreen
 import screen.SwitchScreen
@@ -49,7 +50,8 @@ fun App(
         ) {
             when (selectedIndex) {
                 0 -> SignScreen(shellVM, configVM, composeWindow)
-                1 -> SettingsScreen(composeWindow)
+                1 -> CommonMethodsScreen(shellVM, composeWindow)
+                2 -> SettingsScreen(composeWindow)
             }
         }
     }

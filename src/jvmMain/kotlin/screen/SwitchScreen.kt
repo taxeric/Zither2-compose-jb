@@ -23,9 +23,12 @@ fun SwitchScreen(
     var selectedIndex by remember {
         mutableStateOf(0)
     }
-    val tabs = mutableListOf<BaseRadioTab>().apply {
-        add(BaseRadioTab("签名"))
-        add(BaseRadioTab("设置"))
+    val tabs = remember {
+        mutableStateListOf<BaseRadioTab>().apply {
+            add(BaseRadioTab("签名"))
+            add(BaseRadioTab("常用"))
+            add(BaseRadioTab("设置"))
+        }
     }
     SimpleRadioGroup(
         tabs = tabs,
