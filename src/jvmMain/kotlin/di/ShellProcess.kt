@@ -6,6 +6,28 @@ import shell.ShellCommand
 
 object ShellProcess {
 
+    suspend fun signVersionFromApk(
+        apksignerPath: String,
+        apkPath: String,
+        onSuccess: (msg: String) -> Unit,
+        onFailed: (msg: String) -> Unit
+    ) {
+        val command = CommandBuilder()
+            .append("java")
+            .append("-jar")
+            .append(apksignerPath)
+            .append("verify")
+            .append("-v")
+            .append(apkPath)
+            .build()
+        val result = ShellCommand.runCommand(command)
+        if (result.code == 0) {
+            onSuccess.invoke(result.stdout)
+        } else {
+            onFailed.invoke("获取失败: ${result.stderr}")
+        }
+    }
+
     suspend fun runSign(
         zipalignPath: String,
         apksignerPath: String,
