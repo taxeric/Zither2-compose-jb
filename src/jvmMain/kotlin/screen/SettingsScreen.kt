@@ -20,6 +20,7 @@ fun SettingsScreen(
     var commonOutputPath by remember { mutableStateOf(CommonSetting.outputPath) }
     var localZipalignPath by remember { mutableStateOf(settings.zipalignPath) }
     var localApksignerPath by remember { mutableStateOf(settings.apksignerPath) }
+    var localKeytoolPath by remember { mutableStateOf(settings.keytoolPath) }
 
     Column(
         modifier = Modifier
@@ -46,6 +47,16 @@ fun SettingsScreen(
         }
 
         TitleWithDragView(
+            "本地keytool路径",
+            composeWindow = composeWindow,
+            value = localKeytoolPath,
+            withBottomSpace = true,
+            enabled = { true }
+        ) {
+            localKeytoolPath = it
+        }
+
+        TitleWithDragView(
             "通用输出路径",
             composeWindow = composeWindow,
             value = commonOutputPath,
@@ -59,7 +70,8 @@ fun SettingsScreen(
                     SettingsEntity(
                         outputPath = commonOutputPath,
                         zipalignPath = localZipalignPath,
-                        apksignerPath = localApksignerPath
+                        apksignerPath = localApksignerPath,
+                        keytoolPath = localKeytoolPath,
                     )
                 )
             }

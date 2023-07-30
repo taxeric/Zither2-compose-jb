@@ -41,10 +41,16 @@ object CommonSetting {
      */
     lateinit var apksignerPath: String
 
+    /**
+     * keytool路径
+     */
+    lateinit var keytoolPath: String
+
     private fun bind(data: SettingsEntity) {
         outputPath = data.outputPath
         zipalignPath = data.zipalignPath
         apksignerPath = data.apksignerPath
+        keytoolPath = data.keytoolPath
     }
 
     fun readSetting() {

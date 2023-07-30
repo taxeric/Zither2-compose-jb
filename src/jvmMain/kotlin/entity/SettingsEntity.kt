@@ -4,6 +4,7 @@ data class SettingsEntity(
     val outputPath: String,
     val zipalignPath: String,
     val apksignerPath: String,
+    val keytoolPath: String = "",
     val default: Boolean = false
 ) {
     companion object {
@@ -11,6 +12,7 @@ data class SettingsEntity(
             outputPath = "",
             zipalignPath = "",
             apksignerPath = "",
+            keytoolPath = "",
             default = true
         )
     }
