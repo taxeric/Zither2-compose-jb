@@ -62,6 +62,23 @@ class ShellViewModel(
         }
     }
 
+    fun analyseSignInfoFromApk(
+        apkPath: String
+    ) {
+        delegate.scope.launch {
+            ShellProcess.signInfoFromApk(
+                keytoolPath = CommonSetting.keytoolPath,
+                apkPath = apkPath,
+                onSuccess = {
+                    _singedApkSignInfoState.tryEmit(RunCommandState.Success(it))
+                },
+                onFailed = {
+                    _singedApkSignInfoState.tryEmit(RunCommandState.Failed(it))
+                }
+            )
+        }
+    }
+
     fun runSign(
         originFilepath: String,
         jksPath: String,

@@ -28,6 +28,26 @@ object ShellProcess {
         }
     }
 
+    suspend fun signInfoFromApk(
+        keytoolPath: String,
+        apkPath: String,
+        onSuccess: (msg: String) -> Unit,
+        onFailed: (msg: String) -> Unit
+    ) {
+        val command = CommandBuilder()
+            .append(keytoolPath)
+            .append("-printcert")
+            .append("-jarfile")
+            .append(apkPath)
+            .build()
+        val result = ShellCommand.runCommand(command)
+        if (result.code == 0) {
+            onSuccess.invoke(result.stdout)
+        } else {
+            onFailed.invoke("获取失败: ${result.stderr}")
+        }
+    }
+
     suspend fun runSign(
         zipalignPath: String,
         apksignerPath: String,

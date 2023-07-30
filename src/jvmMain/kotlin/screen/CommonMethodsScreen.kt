@@ -116,7 +116,9 @@ private fun SignedApkMethodsView(
             Spacer(modifier = Modifier.width(8.dp))
 
             Button(
-                onClick = {}
+                onClick = {
+                    shellViewModel.analyseSignInfoFromApk(apkPath)
+                }
             ) {
                 Text("获取签名信息")
             }
