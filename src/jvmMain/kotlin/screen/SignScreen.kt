@@ -33,7 +33,7 @@ fun SignScreen(
     composeWindow: ComposeWindow
 ) {
     val signState = shellVM.signState.collectAsState().value
-    if (signState is RunCommandState.Success) {
+    if (signState is RunCommandState.Success<*>) {
         AlertDialog(
             onDismissRequest = { shellVM.idleState() },
             text = {

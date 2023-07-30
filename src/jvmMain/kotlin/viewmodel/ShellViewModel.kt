@@ -33,13 +33,34 @@ class ShellViewModel(
     private val _signState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
     val signState: StateFlow<RunCommandState> = _signState.asStateFlow()
 
+    private val _singedApkSignInfoState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
+    val signedApkSignInfoState: StateFlow<RunCommandState> = _singedApkSignInfoState.asStateFlow()
+
     private fun buildOutputApkPath(): String = CommonSetting.outputPath + outputFilename
 
     fun idleState() {
         _signState.tryEmit(RunCommandState.Idle)
+        _singedApkSignInfoState.tryEmit(RunCommandState.Idle)
     }
 
     fun outputFile() = File(CommonSetting.outputPath)
+
+    fun analyseSignVersion(
+        apkPath: String
+    ) {
+        delegate.scope.launch {
+            ShellProcess.signVersionFromApk(
+                apksignerPath = CommonSetting.apksignerPath,
+                apkPath = apkPath,
+                onSuccess = {
+                    _singedApkSignInfoState.tryEmit(RunCommandState.Success(it))
+                },
+                onFailed = {
+                    _singedApkSignInfoState.tryEmit(RunCommandState.Failed(it))
+                }
+            )
+        }
+    }
 
     fun runSign(
         originFilepath: String,
@@ -72,7 +93,7 @@ class ShellViewModel(
                 keystorePwd = keystorePwd,
                 keyPwd = keyPwd,
                 onSuccess = {
-                    _signState.tryEmit(RunCommandState.Success)
+                    _signState.tryEmit(RunCommandState.Success(null))
                 },
                 onFailed = {
                     _signState.tryEmit(RunCommandState.Failed(it))
