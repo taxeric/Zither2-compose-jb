@@ -46,11 +46,17 @@ object CommonSetting {
      */
     lateinit var keytoolPath: String
 
+    /**
+     * aapt2路径
+     */
+    lateinit var aapt2Path: String
+
     private fun bind(data: SettingsEntity) {
         outputPath = data.outputPath
         zipalignPath = data.zipalignPath
         apksignerPath = data.apksignerPath
         keytoolPath = data.keytoolPath
+        aapt2Path = data.aapt2Path
     }
 
     fun readSetting() {
@@ -80,6 +86,7 @@ object CommonSetting {
     }
 
     fun writeSetting(entity: SettingsEntity) {
+        bind(entity)
         scope.launch {
             val file = File(settingFilepath)
             withContext(Dispatchers.IO) {

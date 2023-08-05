@@ -21,6 +21,7 @@ fun SettingsScreen(
     var localZipalignPath by remember { mutableStateOf(settings.zipalignPath) }
     var localApksignerPath by remember { mutableStateOf(settings.apksignerPath) }
     var localKeytoolPath by remember { mutableStateOf(settings.keytoolPath) }
+    var localAAPT2Path by remember { mutableStateOf(settings.aapt2Path) }
 
     Column(
         modifier = Modifier
@@ -57,6 +58,16 @@ fun SettingsScreen(
         }
 
         TitleWithDragView(
+            "本地aapt2路径",
+            composeWindow = composeWindow,
+            value = localAAPT2Path,
+            withBottomSpace = true,
+            enabled = { true }
+        ) {
+            localAAPT2Path = it
+        }
+
+        TitleWithDragView(
             "通用输出路径",
             composeWindow = composeWindow,
             value = commonOutputPath,
@@ -72,6 +83,7 @@ fun SettingsScreen(
                         zipalignPath = localZipalignPath,
                         apksignerPath = localApksignerPath,
                         keytoolPath = localKeytoolPath,
+                        aapt2Path = localAAPT2Path,
                     )
                 )
             }
