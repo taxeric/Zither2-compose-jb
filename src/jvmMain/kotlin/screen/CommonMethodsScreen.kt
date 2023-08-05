@@ -3,6 +3,7 @@ package screen
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
@@ -28,7 +29,7 @@ fun CommonMethodsScreen(
             selectedIndex = index
         }
         when (selectedIndex) {
-            0 -> SignedApkMethodsView(composeWindow, shellViewModel)
+            0 -> ApkMethodsView(composeWindow, shellViewModel)
         }
     }
 }
@@ -39,7 +40,7 @@ private fun SwitchMethodsTab(
 ) {
     val tabs = remember {
         mutableStateListOf<String>().apply {
-            add("APK签名相关")
+            add("APK相关")
             add("其他")
         }
     }
@@ -72,7 +73,7 @@ private fun SwitchMethodsTab(
 }
 
 @Composable
-private fun SignedApkMethodsView(
+private fun ApkMethodsView(
     composeWindow: ComposeWindow,
     shellViewModel: ShellViewModel
 ) {
@@ -122,6 +123,26 @@ private fun SignedApkMethodsView(
             ) {
                 Text("获取签名信息")
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    shellViewModel.analyseSignInfoFromApk(apkPath)
+                }
+            ) {
+                Text("获取APK权限")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    shellViewModel.analyseSignInfoFromApk(apkPath)
+                }
+            ) {
+                Text("获取签名信息")
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -137,10 +158,12 @@ private fun SignedApkMethodsView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = info,
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-        )
+        SelectionContainer {
+            Text(
+                text = info,
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+            )
+        }
     }
 }
