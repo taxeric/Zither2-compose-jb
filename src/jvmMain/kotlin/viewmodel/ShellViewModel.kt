@@ -33,14 +33,14 @@ class ShellViewModel(
     private val _signState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
     val signState: StateFlow<RunCommandState> = _signState.asStateFlow()
 
-    private val _singedApkSignInfoState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
-    val signedApkSignInfoState: StateFlow<RunCommandState> = _singedApkSignInfoState.asStateFlow()
+    private val _singedApkInfoState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
+    val signedApkInfoState: StateFlow<RunCommandState> = _singedApkInfoState.asStateFlow()
 
     private fun buildOutputApkPath(): String = CommonSetting.outputPath + outputFilename
 
     fun idleState() {
         _signState.tryEmit(RunCommandState.Idle)
-        _singedApkSignInfoState.tryEmit(RunCommandState.Idle)
+        _singedApkInfoState.tryEmit(RunCommandState.Idle)
     }
 
     fun outputFile() = File(CommonSetting.outputPath)
@@ -53,10 +53,10 @@ class ShellViewModel(
                 apksignerPath = CommonSetting.apksignerPath,
                 apkPath = apkPath,
                 onSuccess = {
-                    _singedApkSignInfoState.tryEmit(RunCommandState.Success(it))
+                    _singedApkInfoState.tryEmit(RunCommandState.Success(it))
                 },
                 onFailed = {
-                    _singedApkSignInfoState.tryEmit(RunCommandState.Failed(it))
+                    _singedApkInfoState.tryEmit(RunCommandState.Failed(it))
                 }
             )
         }
@@ -70,10 +70,44 @@ class ShellViewModel(
                 keytoolPath = CommonSetting.keytoolPath,
                 apkPath = apkPath,
                 onSuccess = {
-                    _singedApkSignInfoState.tryEmit(RunCommandState.Success(it))
+                    _singedApkInfoState.tryEmit(RunCommandState.Success(it))
                 },
                 onFailed = {
-                    _singedApkSignInfoState.tryEmit(RunCommandState.Failed(it))
+                    _singedApkInfoState.tryEmit(RunCommandState.Failed(it))
+                }
+            )
+        }
+    }
+
+    fun analyseBaseInfoFromApk(
+        apkPath: String
+    ) {
+        delegate.scope.launch {
+            ShellProcess.baseInfoFromApk(
+                aapt2Path = CommonSetting.aapt2Path,
+                apkPath = apkPath,
+                onSuccess = {
+                    _singedApkInfoState.tryEmit(RunCommandState.Success(it))
+                },
+                onFailed = {
+                    _singedApkInfoState.tryEmit(RunCommandState.Failed(it))
+                }
+            )
+        }
+    }
+
+    fun analysePermissionsFromApk(
+        apkPath: String
+    ) {
+        delegate.scope.launch {
+            ShellProcess.permissionsFromApk(
+                aapt2Path = CommonSetting.aapt2Path,
+                apkPath = apkPath,
+                onSuccess = {
+                    _singedApkInfoState.tryEmit(RunCommandState.Success(it))
+                },
+                onFailed = {
+                    _singedApkInfoState.tryEmit(RunCommandState.Failed(it))
                 }
             )
         }

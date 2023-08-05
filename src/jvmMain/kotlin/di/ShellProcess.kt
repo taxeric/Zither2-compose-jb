@@ -6,6 +6,9 @@ import shell.ShellCommand
 
 object ShellProcess {
 
+    /**
+     * 签名版本
+     */
     suspend fun signVersionFromApk(
         apksignerPath: String,
         apkPath: String,
@@ -20,14 +23,12 @@ object ShellProcess {
             .append("-v")
             .append(apkPath)
             .build()
-        val result = ShellCommand.runCommand(command)
-        if (result.code == 0) {
-            onSuccess.invoke(result.stdout)
-        } else {
-            onFailed.invoke("获取失败: ${result.stderr}")
-        }
+        commonPrint(command, onSuccess, onFailed)
     }
 
+    /**
+     * 签名信息
+     */
     suspend fun signInfoFromApk(
         keytoolPath: String,
         apkPath: String,
@@ -40,6 +41,56 @@ object ShellProcess {
             .append("-jarfile")
             .append(apkPath)
             .build()
+        commonPrint(command, onSuccess, onFailed)
+    }
+
+    /**
+     * 基本信息
+     */
+    suspend fun baseInfoFromApk(
+        aapt2Path: String,
+        apkPath: String,
+        onSuccess: (msg: String) -> Unit,
+        onFailed: (msg: String) -> Unit
+    ) {
+        val command = CommandBuilder()
+            .append(aapt2Path)
+            .append("dump")
+            .append("badging")
+            .append(apkPath)
+            .append("|")
+            .append("findstr")
+            .append("package")
+            .build()
+        commonPrint(command, onSuccess, onFailed)
+    }
+
+    /**
+     * 权限
+     */
+    suspend fun permissionsFromApk(
+        aapt2Path: String,
+        apkPath: String,
+        onSuccess: (msg: String) -> Unit,
+        onFailed: (msg: String) -> Unit
+    ) {
+        val command = CommandBuilder()
+            .append(aapt2Path)
+            .append("dump")
+            .append("badging")
+            .append(apkPath)
+            .append("|")
+            .append("findstr")
+            .append("permission")
+            .build()
+        commonPrint(command, onSuccess, onFailed)
+    }
+
+    private suspend fun commonPrint(
+        command: List<String>,
+        onSuccess: (msg: String) -> Unit,
+        onFailed: (msg: String) -> Unit
+    ) {
         val result = ShellCommand.runCommand(command)
         if (result.code == 0) {
             onSuccess.invoke(result.stdout)
