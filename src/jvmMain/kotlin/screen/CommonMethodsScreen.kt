@@ -11,6 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import shell.RunCommandState
 import viewmodel.ShellViewModel
@@ -77,13 +80,22 @@ private fun ApkMethodsView(
     composeWindow: ComposeWindow,
     shellViewModel: ShellViewModel
 ) {
-    val parseValue = shellViewModel.signedApkSignInfoState.collectAsState().value
+    val parseValue = shellViewModel.signedApkInfoState.collectAsState().value
 
     var apkPath by remember { mutableStateOf("") }
     var info by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf(false) }
 
     if (parseValue is RunCommandState.Success<*>) {
+        error = false
         info = (parseValue.data as? String)?: "Unknown Data"
+    }
+    if (parseValue is RunCommandState.Failed) {
+        error = true
+        info = parseValue.msg
+    }
+    if (parseValue is RunCommandState.Idle) {
+        error = false
     }
 
     Column(
@@ -108,40 +120,40 @@ private fun ApkMethodsView(
         ) {
             Button(
                 onClick = {
+                    shellViewModel.analyseBaseInfoFromApk(apkPath)
+                }
+            ) {
+                Text("获取APK信息")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    shellViewModel.analysePermissionsFromApk(apkPath)
+                }
+            ) {
+                Text("获取apk权限")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    shellViewModel.analyseSignInfoFromApk(apkPath)
+                }
+            ) {
+                Text("获取签名信息")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
                     shellViewModel.analyseSignVersion(apkPath)
                 }
             ) {
                 Text("获取签名版本")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                onClick = {
-                    shellViewModel.analyseSignInfoFromApk(apkPath)
-                }
-            ) {
-                Text("获取签名信息")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                onClick = {
-                    shellViewModel.analyseSignInfoFromApk(apkPath)
-                }
-            ) {
-                Text("获取APK权限")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                onClick = {
-                    shellViewModel.analyseSignInfoFromApk(apkPath)
-                }
-            ) {
-                Text("获取签名信息")
             }
         }
 
@@ -160,7 +172,11 @@ private fun ApkMethodsView(
 
         SelectionContainer {
             Text(
-                text = info,
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(color = if (error) Color.Red else Color.Black)) {
+                        append(info)
+                    }
+                },
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
             )
