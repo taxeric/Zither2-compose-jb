@@ -53,7 +53,7 @@ object ShellProcess {
         onSuccess: (msg: String) -> Unit,
         onFailed: (msg: String) -> Unit
     ) {
-        val command = CommandBuilder()
+        val command = CommandBuilder(true)
             .append(aapt2Path)
             .append("dump")
             .append("badging")
@@ -74,7 +74,7 @@ object ShellProcess {
         onSuccess: (msg: String) -> Unit,
         onFailed: (msg: String) -> Unit
     ) {
-        val command = CommandBuilder()
+        val command = CommandBuilder(true)
             .append(aapt2Path)
             .append("dump")
             .append("badging")
