@@ -1,10 +1,9 @@
 package screen
 
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -116,7 +115,6 @@ private fun ApkMethodsView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
         ) {
             Button(
                 onClick = {
@@ -130,14 +128,27 @@ private fun ApkMethodsView(
 
             Button(
                 onClick = {
+                    shellViewModel.analyseSignApkNative(apkPath)
+                }
+            ) {
+                Text("获取支持架构")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
                     shellViewModel.analysePermissionsFromApk(apkPath)
                 }
             ) {
                 Text("获取apk权限")
             }
+        }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             Button(
                 onClick = {
                     shellViewModel.analyseSignInfoFromApk(apkPath)
@@ -170,7 +181,14 @@ private fun ApkMethodsView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SelectionContainer {
+        SelectionContainer(
+            modifier = Modifier
+                .width(480.dp)
+                .height(300.dp)
+                .border(1.dp, Color.LightGray, shape = RoundedCornerShape(8.dp))
+                .background(Color.Transparent)
+                .padding(8.dp)
+        ) {
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(color = if (error) Color.Red else Color.Black)) {

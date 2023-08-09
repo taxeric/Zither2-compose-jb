@@ -66,6 +66,27 @@ object ShellProcess {
     }
 
     /**
+     * 支持架构
+     */
+    suspend fun signApkNative(
+        aapt2Path: String,
+        apkPath: String,
+        onSuccess: (msg: String) -> Unit,
+        onFailed: (msg: String) -> Unit
+    ) {
+        val command = CommandBuilder(true)
+            .append(aapt2Path)
+            .append("dump")
+            .append("badging")
+            .append(apkPath)
+            .append("|")
+            .append("findstr")
+            .append("native")
+            .build()
+        commonPrint(command, onSuccess, onFailed)
+    }
+
+    /**
      * 权限
      */
     suspend fun permissionsFromApk(

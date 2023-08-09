@@ -87,6 +87,24 @@ class ShellViewModel(
                 aapt2Path = CommonSetting.aapt2Path,
                 apkPath = apkPath,
                 onSuccess = {
+                    val result = it.replace(" ", "\n")
+                    _singedApkInfoState.tryEmit(RunCommandState.Success(result))
+                },
+                onFailed = {
+                    _singedApkInfoState.tryEmit(RunCommandState.Failed(it))
+                }
+            )
+        }
+    }
+
+    fun analyseSignApkNative(
+        apkPath: String
+    ) {
+        delegate.scope.launch {
+            ShellProcess.signApkNative(
+                aapt2Path = CommonSetting.aapt2Path,
+                apkPath = apkPath,
+                onSuccess = {
                     _singedApkInfoState.tryEmit(RunCommandState.Success(it))
                 },
                 onFailed = {
