@@ -31,10 +31,16 @@ class ShellViewModel(
     private val tempApk = tempPath + cacheTempFilename
 
     /**
-     * 创建签名/重签名状态
+     * 重签名状态
      */
     private val _signState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
     val signState: StateFlow<RunCommandState> = _signState.asStateFlow()
+
+    /**
+     * 创建签名状态
+     */
+    private val _createSignState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
+    val createSignState: StateFlow<RunCommandState> = _createSignState.asStateFlow()
 
     /**
      * APK相关状态
@@ -47,6 +53,7 @@ class ShellViewModel(
     fun idleState() {
         _signState.tryEmit(RunCommandState.Idle)
         _singedApkInfoState.tryEmit(RunCommandState.Idle)
+        _createSignState.tryEmit(RunCommandState.Idle)
     }
 
     fun outputFile() = File(CommonSetting.outputPath)
@@ -54,7 +61,7 @@ class ShellViewModel(
     fun analyseSignVersion(
         apkPath: String
     ) {
-        delegate.scope.launch {
+        delegateRunWithState(_singedApkInfoState) {
             ShellProcess.signVersionFromApk(
                 apksignerPath = CommonSetting.apksignerPath,
                 apkPath = apkPath,
@@ -71,7 +78,7 @@ class ShellViewModel(
     fun analyseSignInfoFromApk(
         apkPath: String
     ) {
-        delegate.scope.launch {
+        delegateRunWithState(_singedApkInfoState) {
             ShellProcess.signInfoFromApk(
                 keytoolPath = CommonSetting.keytoolPath,
                 apkPath = apkPath,
@@ -88,7 +95,7 @@ class ShellViewModel(
     fun analyseBaseInfoFromApk(
         apkPath: String
     ) {
-        delegate.scope.launch {
+        delegateRunWithState(_singedApkInfoState) {
             ShellProcess.baseInfoFromApk(
                 aapt2Path = CommonSetting.aapt2Path,
                 apkPath = apkPath,
@@ -106,7 +113,7 @@ class ShellViewModel(
     fun analyseSignApkNative(
         apkPath: String
     ) {
-        delegate.scope.launch {
+        delegateRunWithState(_singedApkInfoState) {
             ShellProcess.signApkNative(
                 aapt2Path = CommonSetting.aapt2Path,
                 apkPath = apkPath,
@@ -123,7 +130,7 @@ class ShellViewModel(
     fun analysePermissionsFromApk(
         apkPath: String
     ) {
-        delegate.scope.launch {
+        delegateRunWithState(_singedApkInfoState) {
             ShellProcess.permissionsFromApk(
                 aapt2Path = CommonSetting.aapt2Path,
                 apkPath = apkPath,
@@ -142,23 +149,35 @@ class ShellViewModel(
         pwd: String,
         ksPwd: String,
         validity: Int,
+        username: String,
+        organizationalUnit: String,
+        organizational: String,
+        location: String,
+        province: String,
+        country: String,
         saveLocation: String,
         filename: String,
     ) {
-        delegate.scope.launch {
+        delegateRunWithState(_createSignState) {
             ShellProcess.createJKS(
                 keytoolPath = CommonSetting.keytoolPath,
                 alias = alias,
                 pwd = pwd,
                 ksPwd = ksPwd,
                 validity = validity,
+                username = username,
+                organizationalUnit = organizationalUnit,
+                organizational = organizational,
+                location = location,
+                province = province,
+                country = country,
                 saveLocation = saveLocation,
-                filename = filename,
+                filename = "$filename.jks",
                 onSuccess = {
-                    _signState.tryEmit(RunCommandState.Success(null))
+                    _createSignState.tryEmit(RunCommandState.Success(null))
                 },
                 onFailed = {
-                    _signState.tryEmit(RunCommandState.Failed(it))
+                    _createSignState.tryEmit(RunCommandState.Failed(it))
                 }
             )
         }
@@ -172,7 +191,7 @@ class ShellViewModel(
         keystorePwd: String,
         keyPwd: String,
     ) {
-        delegate.scope.launch {
+        delegateRunWithState(_signState) {
             withContext(Dispatchers.IO) {
                 val cacheTempPath = File(tempPath)
                 if (!cacheTempPath.exists()) {
@@ -183,7 +202,6 @@ class ShellViewModel(
                     outputPath.mkdir()
                 }
             }
-            _signState.tryEmit(RunCommandState.Running)
             ShellProcess.runSign(
                 zipalignPath = CommonSetting.zipalignPath,
                 apksignerPath = CommonSetting.apksignerPath,
@@ -201,6 +219,16 @@ class ShellViewModel(
                     _signState.tryEmit(RunCommandState.Failed(it))
                 },
             )
+        }
+    }
+
+    private fun delegateRunWithState(
+        state: MutableStateFlow<RunCommandState>,
+        block: suspend () -> Unit
+    ) {
+        delegate.scope.launch {
+            state.tryEmit(RunCommandState.Running)
+            block.invoke()
         }
     }
 }

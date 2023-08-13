@@ -131,6 +131,12 @@ object ShellProcess {
         pwd: String,
         ksPwd: String,
         validity: Int,
+        username: String,
+        organizationalUnit: String,
+        organizational: String,
+        location: String,
+        province: String,
+        country: String,
         saveLocation: String,
         filename: String,
         onSuccess: () -> Unit,
@@ -155,6 +161,8 @@ object ShellProcess {
             .append("pkcs12")
             .append("-validity")
             .append("${validity * 365}")
+            .append("-dname")
+            .append("\"CN=$username,OU=$organizationalUnit,O=$organizational,L=$location,ST=$province,C=$country\"")
             .build()
         val result = ShellCommand.runCommand(command)
         if (result.code == 0) {
