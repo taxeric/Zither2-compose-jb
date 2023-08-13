@@ -23,6 +23,7 @@ import viewmodel.ShellViewModel
 import views.SimpleRadioGroup
 import views.SwitchWithTitle
 import views.TitleWithDragView
+import views.TitleWithTextField
 import java.awt.Desktop
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -390,36 +391,4 @@ private fun ScrollableLocalSignView(
         }
     }
     Spacer(modifier = Modifier.height(16.dp))
-}
-
-@Composable
-private fun TitleWithTextField(
-    title: String,
-    enabled: () -> Boolean,
-    withBottomSpace: Boolean = true,
-    value: () -> String,
-    onValueChange: (String) -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            title,
-            modifier = Modifier
-                .width(80.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        TextField(
-            value = value(),
-            onValueChange = {
-                onValueChange.invoke(it)
-            },
-            enabled = enabled(),
-            modifier = Modifier
-                .width(400.dp)
-        )
-    }
-    if (withBottomSpace) {
-        Spacer(modifier = Modifier.height(16.dp))
-    }
 }
