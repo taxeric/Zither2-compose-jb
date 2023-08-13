@@ -120,6 +120,50 @@ object ShellProcess {
         }
     }
 
+    /**
+     * 新建签名
+     *
+     * @param validity 有效期, 单位年
+     */
+    suspend fun createJKS(
+        keytoolPath: String,
+        alias: String,
+        pwd: String,
+        ksPwd: String,
+        validity: Int,
+        saveLocation: String,
+        filename: String,
+        onSuccess: () -> Unit,
+        onFailed: (msg: String) -> Unit,
+    ) {
+        val command = CommandBuilder()
+            .append(keytoolPath)
+            .append("-genkey")
+            .append("-alias")
+            .append(alias)
+            .append("-keypass")
+            .append(pwd)
+            .append("-keyalg")
+            .append("RSA")
+            .append("-keysize")
+            .append("2048")
+            .append("-keystore")
+            .append("$saveLocation$filename")
+            .append("-storepass")
+            .append(ksPwd)
+            .append("-storetype")
+            .append("pkcs12")
+            .append("-validity")
+            .append("${validity * 365}")
+            .build()
+        val result = ShellCommand.runCommand(command)
+        if (result.code == 0) {
+            onSuccess.invoke()
+        } else {
+            onFailed.invoke(result.stderr)
+        }
+    }
+
     suspend fun runSign(
         zipalignPath: String,
         apksignerPath: String,

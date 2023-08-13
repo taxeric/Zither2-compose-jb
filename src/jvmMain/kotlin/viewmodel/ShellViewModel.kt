@@ -30,9 +30,15 @@ class ShellViewModel(
     private val tempPath = CommonSetting.basePath + File.separator + cacheTempPathname + File.separator
     private val tempApk = tempPath + cacheTempFilename
 
+    /**
+     * 创建签名/重签名状态
+     */
     private val _signState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
     val signState: StateFlow<RunCommandState> = _signState.asStateFlow()
 
+    /**
+     * APK相关状态
+     */
     private val _singedApkInfoState = MutableStateFlow<RunCommandState>(RunCommandState.Idle)
     val signedApkInfoState: StateFlow<RunCommandState> = _singedApkInfoState.asStateFlow()
 
@@ -126,6 +132,33 @@ class ShellViewModel(
                 },
                 onFailed = {
                     _singedApkInfoState.tryEmit(RunCommandState.Failed(it))
+                }
+            )
+        }
+    }
+
+    fun createJKS(
+        alias: String,
+        pwd: String,
+        ksPwd: String,
+        validity: Int,
+        saveLocation: String,
+        filename: String,
+    ) {
+        delegate.scope.launch {
+            ShellProcess.createJKS(
+                keytoolPath = CommonSetting.keytoolPath,
+                alias = alias,
+                pwd = pwd,
+                ksPwd = ksPwd,
+                validity = validity,
+                saveLocation = saveLocation,
+                filename = filename,
+                onSuccess = {
+                    _signState.tryEmit(RunCommandState.Success(null))
+                },
+                onFailed = {
+                    _signState.tryEmit(RunCommandState.Failed(it))
                 }
             )
         }
