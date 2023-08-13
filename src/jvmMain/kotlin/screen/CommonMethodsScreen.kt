@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import shell.RunCommandState
 import viewmodel.ShellViewModel
 import views.TitleWithDragView
+import views.TitleWithTextField
 
 @Composable
 fun CommonMethodsScreen(
@@ -32,6 +34,7 @@ fun CommonMethodsScreen(
         }
         when (selectedIndex) {
             0 -> ApkMethodsView(composeWindow, shellViewModel)
+            1 -> CreateJKSView(composeWindow, shellViewModel)
         }
     }
 }
@@ -43,7 +46,8 @@ private fun SwitchMethodsTab(
     val tabs = remember {
         mutableStateListOf<String>().apply {
             add("APK相关")
-            add("其他")
+            add("新建签名")
+            add("杂项")
         }
     }
     var selectedIndex by remember {
@@ -198,6 +202,215 @@ private fun ApkMethodsView(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun CreateJKSView(
+    composeWindow: ComposeWindow,
+    shellViewModel: ShellViewModel,
+) {
+    var alias by remember { mutableStateOf("") }
+    var pwd by remember { mutableStateOf("") }
+    var ksPwd by remember { mutableStateOf("") }
+    var saveLocation by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("unknown") }
+    var organizationalUnit by remember { mutableStateOf("unknown") }
+    var organizational by remember { mutableStateOf("unknown") }
+    var location by remember { mutableStateOf("Hangzhou") }
+    var province by remember { mutableStateOf("ZheJiang") }
+    var country by remember { mutableStateOf("CN") }
+    var filename by remember { mutableStateOf("new") }
+
+    val runningState = shellViewModel.createSignState.collectAsState().value
+
+    val idleState = fun () {
+        shellViewModel.idleState()
+    }
+
+    if (runningState is RunCommandState.Success<*>) {
+        AlertDialog(
+            onDismissRequest = idleState,
+            text = {
+                Text("创建完成")
+            },
+            confirmButton = {
+                Button(
+                    onClick = idleState
+                ) {
+                    Text("Sure")
+                }
+            }
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        TitleWithTextField(
+            title = "alias",
+            enabled = { true },
+            value = { alias },
+            onValueChange = {
+                alias = it
+            }
+        )
+
+        TitleWithTextField(
+            title = "pwd",
+            enabled = { true },
+            value = { pwd },
+            onValueChange = {
+                pwd = it
+            }
+        )
+
+        TitleWithTextField(
+            title = "ksPwd",
+            enabled = { true },
+            value = { ksPwd },
+            onValueChange = {
+                ksPwd = it
+            }
+        )
+
+        Row {
+            TitleWithTextField(
+                title = "姓氏",
+                textFieldWidth = 120.dp,
+                textFieldSingleLine = true,
+                enabled = { true },
+                value = { username },
+                onValueChange = {
+                    username = it
+                }
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            TitleWithTextField(
+                title = "组织单位",
+                textFieldWidth = 120.dp,
+                textFieldSingleLine = true,
+                enabled = { true },
+                value = { organizationalUnit },
+                onValueChange = {
+                    organizationalUnit = it
+                }
+            )
+        }
+
+        Row {
+            TitleWithTextField(
+                title = "组织",
+                textFieldWidth = 120.dp,
+                textFieldSingleLine = true,
+                enabled = { true },
+                value = { organizational },
+                onValueChange = {
+                    organizational = it
+                }
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            TitleWithTextField(
+                title = "城市",
+                textFieldWidth = 120.dp,
+                textFieldSingleLine = true,
+                enabled = { true },
+                value = { location },
+                onValueChange = {
+                    location = it
+                }
+            )
+        }
+
+        Row {
+            TitleWithTextField(
+                title = "省",
+                textFieldWidth = 120.dp,
+                textFieldSingleLine = true,
+                enabled = { true },
+                value = { province },
+                onValueChange = {
+                    province = it
+                }
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            TitleWithTextField(
+                title = "国家",
+                textFieldWidth = 120.dp,
+                textFieldSingleLine = true,
+                enabled = { true },
+                value = { country },
+                onValueChange = {
+                    country = it
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier
+                .width(500.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TitleWithTextField(
+                title = "路径",
+                enabled = { true },
+                withBottomSpace = false,
+                textFieldWidth = 250.dp,
+                textFieldSingleLine = true,
+                value = { saveLocation },
+                onValueChange = {
+                    saveLocation = it
+                }
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            OutlinedTextField(
+                value = filename,
+                onValueChange = {
+                    filename = it
+                },
+                singleLine = true,
+                modifier = Modifier
+                    .width(80.dp)
+            )
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Text(".jks")
+        }
+
+        Button(
+            onClick = {
+                shellViewModel.createJKS(
+                    alias = alias,
+                    pwd = pwd,
+                    ksPwd = ksPwd,
+                    validity = 10,
+                    username = username,
+                    organizationalUnit = organizationalUnit,
+                    organizational = organizational,
+                    location = location,
+                    province = province,
+                    country = country,
+                    saveLocation = saveLocation,
+                    filename = filename,
+                )
+            }
+        ) {
+            Text("create")
         }
     }
 }
